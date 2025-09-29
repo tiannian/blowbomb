@@ -1,0 +1,8 @@
+[package]
+name = "primitives"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+sha3 = { workspace = true }
