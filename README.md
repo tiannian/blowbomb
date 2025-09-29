@@ -1,3 +1,3 @@
 # BlowBomb
 
-> A runtime for high performance blockchain runtime.
+> A runtime for high performance blockchain.

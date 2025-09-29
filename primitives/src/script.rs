@@ -43,13 +43,13 @@ impl<'a> Script<'a> {
             ScriptType::from_u8(slice[1]).ok_or(Error::WrongLengthForScript(slice.len(), 2))?;
 
         let code_len_bytes = [slice[2], slice[3], slice[4], slice[5]];
-        let code_len = u32::from_le_bytes(code_len_bytes) as usize;
+        let code_len = u32::from_be_bytes(code_len_bytes) as usize;
 
         let args_len_bytes = [slice[6], slice[7], slice[8], slice[9]];
-        let args_len = u32::from_le_bytes(args_len_bytes) as usize;
+        let args_len = u32::from_be_bytes(args_len_bytes) as usize;
 
         let data_len_bytes = [slice[10], slice[11], slice[12], slice[13]];
-        let data_len = u32::from_le_bytes(data_len_bytes) as usize;
+        let data_len = u32::from_be_bytes(data_len_bytes) as usize;
 
         let code = &slice[14..(14 + code_len)];
         let args = &slice[(14 + code_len)..(14 + code_len + args_len)];
@@ -76,7 +76,7 @@ impl<'a> Script<'a> {
         let mut address = [0u8; 20];
         address.copy_from_slice(&hash[..20]);
 
-        Address(address)
+        crate::FixedBytes(address)
     }
 
     pub fn version(&self) -> u8 {
