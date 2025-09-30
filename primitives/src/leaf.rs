@@ -1,5 +1,6 @@
 use crate::{Address, Bytes, IndexKey, LeafId};
 
+#[derive(Debug, PartialEq)]
 pub struct Leaf {
     pub version: u8,
     pub owner: Address,
