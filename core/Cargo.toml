@@ -1,0 +1,10 @@
+[package]
+name = "bbm-core"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bbm-primitives = { workspace = true }
+
+anyhow = { workspace = true }
+async-trait = { workspace = true }

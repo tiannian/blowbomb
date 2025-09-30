@@ -1,5 +1,5 @@
 [workspace]
-members = ["primitives"]
+members = ["core", "primitives"]
 resolver = "2"
 
 [workspace.package]
@@ -10,3 +10,7 @@ version = "0.1.0"
 thiserror = "2.0.11"
 sha3 = "0.10.1"
 hex = "0.4.3"
+anyhow = "1.0.98"
+async-trait = "0.1.89"
+
+bbm-primitives = { version = "0.1", path = "primitives" }

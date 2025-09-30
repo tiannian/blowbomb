@@ -1,3 +1,5 @@
+use sha3::Digest;
+
 use crate::{Address, Bytes, Error, IndexKey, Leaf, LeafId, Result, Txid};
 
 #[derive(Debug, PartialEq)]
@@ -30,7 +32,6 @@ impl Transaction {
             let unlocker_len = unlocker.0.len() as u32;
             v.extend_from_slice(&unlocker_len.to_be_bytes());
         }
-        println!("write unlockers end: {:?}", v.len());
 
         for output in &self.outputs {
             let output_len = output.data.0.len() as u32;
@@ -42,8 +43,6 @@ impl Transaction {
             v.extend_from_slice(&input.index.to_be_bytes());
             v.extend_from_slice(&unlocker.0);
         }
-
-        println!("write unlockers end: {:?}", v.len());
 
         for output in &self.outputs {
             v.extend_from_slice(&output.version.to_be_bytes());
@@ -181,6 +180,17 @@ impl Transaction {
             unlockers,
             outputs,
         })
+    }
+
+    pub fn hash(&self) -> Result<Txid> {
+        let mut hasher = sha3::Sha3_256::new();
+
+        let bytes = self.to_vec()?;
+        hasher.update(&bytes);
+
+        let hash = hasher.finalize();
+
+        Ok(Txid::from_slice(&hash)?)
     }
 }
 

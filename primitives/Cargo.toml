@@ -1,9 +1,11 @@
 [package]
-name = "primitives"
+name = "bbm-primitives"
 edition.workspace = true
 version.workspace = true
 
 [dependencies]
 thiserror = { workspace = true }
+anyhow = { workspace = true }
+
 sha3 = { workspace = true }
 hex = { workspace = true }

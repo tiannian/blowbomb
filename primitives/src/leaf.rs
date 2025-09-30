@@ -8,3 +8,8 @@ pub struct Leaf {
     pub operator: LeafId,
     pub data: Bytes,
 }
+
+pub struct LeafWithId {
+    pub leaf: Leaf,
+    pub id: LeafId,
+}
