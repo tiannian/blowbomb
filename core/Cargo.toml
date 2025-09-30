@@ -8,3 +8,9 @@ bbm-primitives = { workspace = true }
 
 anyhow = { workspace = true }
 async-trait = { workspace = true }
+
+log = { workspace = true }
+
+serde = { workspace = true, features = ["derive"] }
+
+wasmtime = { workspace = true, features = ["runtime", "cranelift", "cache"] }

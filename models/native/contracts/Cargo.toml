@@ -1,0 +1,6 @@
+[package]
+name = "bbm-native-contracts"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]

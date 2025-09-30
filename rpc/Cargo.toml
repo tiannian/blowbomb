@@ -1,0 +1,6 @@
+[package]
+name = "bbm-rpc"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]

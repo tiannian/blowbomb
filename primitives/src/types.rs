@@ -4,7 +4,7 @@ use crate::{Error, Result};
 
 pub type Txid = FixedBytes<32>;
 
-#[derive(PartialEq)]
+#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LeafId {
     pub txid: Txid,
     pub index: u32,
@@ -16,12 +16,28 @@ impl Debug for LeafId {
     }
 }
 
+impl LeafId {
+    pub fn is_some(&self) -> bool {
+        self.txid.0 != [0u8; 32]
+    }
+
+    pub fn is_none(&self) -> bool {
+        self.txid.0 == [0u8; 32]
+    }
+}
+
 pub type IndexKey = FixedBytes<32>;
 
 pub type Address = FixedBytes<20>;
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FixedBytes<const N: usize>(pub [u8; N]);
+
+impl<const N: usize> Default for FixedBytes<N> {
+    fn default() -> Self {
+        Self([0u8; N])
+    }
+}
 
 impl<const N: usize> Debug for FixedBytes<N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -39,7 +55,7 @@ impl<const N: usize> FixedBytes<N> {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
 impl Debug for Bytes {

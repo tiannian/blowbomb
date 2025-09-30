@@ -1,0 +1,6 @@
+[package]
+name = "bbm-models-native-rpc"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]

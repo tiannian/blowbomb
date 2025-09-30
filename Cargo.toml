@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "primitives"]
+members = ["core", "models/eth/contracts", "models/eth/rpc", "models/native/contracts", "models/native/rpc", "primitives", "rpc"]
 resolver = "2"
 
 [workspace.package]
@@ -12,5 +12,10 @@ sha3 = "0.10.1"
 hex = "0.4.3"
 anyhow = "1.0.98"
 async-trait = "0.1.89"
+log = "0.4.22"
+
+serde = { version = "1.0.211", features = ["derive"] }
+
+wasmtime = { version = "37.0.1", default-features = false }
 
 bbm-primitives = { version = "0.1", path = "primitives" }

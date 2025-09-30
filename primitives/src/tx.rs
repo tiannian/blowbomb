@@ -48,8 +48,14 @@ impl Transaction {
             v.extend_from_slice(&output.version.to_be_bytes());
             v.extend_from_slice(&output.owner.0);
             v.extend_from_slice(&output.index_key.0);
-            v.extend_from_slice(&output.operator.txid.0);
-            v.extend_from_slice(&output.operator.index.to_be_bytes());
+
+            if let Some(operator) = &output.operator {
+                v.extend_from_slice(&operator.txid.0);
+                v.extend_from_slice(&operator.index.to_be_bytes());
+            } else {
+                v.extend_from_slice(&[0u8; 32]);
+                v.extend_from_slice(&[0u8; 4]);
+            }
             v.extend_from_slice(&output.data.0);
         }
 
@@ -157,6 +163,12 @@ impl Transaction {
                 index: operator_index,
             };
 
+            let operator = if operator.is_some() {
+                Some(operator)
+            } else {
+                None
+            };
+
             // Get output data
             let begin = end;
             let end = begin + output_len;
@@ -194,6 +206,12 @@ impl Transaction {
     }
 }
 
+pub struct FilledTransaction {
+    pub inputs: Vec<Leaf>,
+    pub unlockers: Vec<Bytes>,
+    pub outputs: Vec<Leaf>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -220,10 +238,10 @@ mod tests {
                 version: 1,
                 owner: FixedBytes([3u8; 20]),
                 index_key: FixedBytes([4u8; 32]),
-                operator: LeafId {
+                operator: Some(LeafId {
                     txid: FixedBytes([5u8; 32]),
                     index: 2,
-                },
+                }),
                 data: Bytes(vec![60, 70, 80, 90]),
             }],
         };
@@ -277,20 +295,20 @@ mod tests {
                     version: 1,
                     owner: FixedBytes([11u8; 20]),
                     index_key: FixedBytes([12u8; 32]),
-                    operator: LeafId {
+                    operator: Some(LeafId {
                         txid: FixedBytes([13u8; 32]),
                         index: 10,
-                    },
+                    }),
                     data: Bytes(vec![100, 101, 102]),
                 },
                 Leaf {
                     version: 2,
                     owner: FixedBytes([21u8; 20]),
                     index_key: FixedBytes([22u8; 32]),
-                    operator: LeafId {
+                    operator: Some(LeafId {
                         txid: FixedBytes([23u8; 32]),
                         index: 20,
-                    },
+                    }),
                     data: Bytes(vec![200]),
                 },
             ],
