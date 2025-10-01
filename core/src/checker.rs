@@ -21,17 +21,18 @@ impl TransactionChecker {
     where
         S: LeafStorage,
     {
-        let txid = transaction.hash()?;
+        let unsigned = transaction.unsigned;
 
-        if transaction.inputs.len() != transaction.unlockers.len() {
-            log::warn!("Input length mismatch: {:?}", transaction);
+        let txid = unsigned.hash()?;
+
+        if unsigned.inputs.len() != transaction.unlockers.len() {
             return Err(anyhow::anyhow!(
                 "Input length mismatch for txid: {:?}",
                 txid
             ));
         }
 
-        for (i, _leaf) in transaction.outputs.iter().enumerate() {
+        for (i, _leaf) in unsigned.outputs.iter().enumerate() {
             self.buffer_leaf_ids.insert(LeafId {
                 txid: txid.clone(),
                 index: i as u32,
@@ -40,7 +41,7 @@ impl TransactionChecker {
 
         let mut filled_tx_inputs = Vec::new();
 
-        for leaf_id in &transaction.inputs {
+        for leaf_id in &unsigned.inputs {
             if self.used_buffer_leaf_ids.contains(leaf_id) {
                 return Err(anyhow::anyhow!("Input leaf id already used: {:?}", leaf_id));
             }
@@ -79,7 +80,7 @@ impl TransactionChecker {
         Ok(FilledTransaction {
             inputs: filled_tx_inputs,
             unlockers: transaction.unlockers,
-            outputs: transaction.outputs,
+            outputs: unsigned.outputs,
         })
     }
 }
