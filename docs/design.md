@@ -76,7 +76,13 @@ Unlocker使用一个bytes编码数据，目前分为三个部分。前两个部�
 ### FFI
 
 ```rust
-fn exit(code: u32);
+extern "C" read_unsigned_transaction_size() -> u32;
+
+extern "C" read_unsigned_transaction(ptr: *const u8);
+
+extern "C" read_leaf_unlocker_size() -> u32;
+
+extern "C" read_leaf_unlocker(ptr: *const u8);
 ```
 
 ## 兼容交易的实现方案

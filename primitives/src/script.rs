@@ -29,7 +29,6 @@ pub struct Script<'a> {
     script_type: ScriptType,
     code: &'a [u8],
     args: &'a [u8],
-    data: &'a [u8],
 }
 
 impl<'a> Script<'a> {
@@ -48,19 +47,14 @@ impl<'a> Script<'a> {
         let args_len_bytes = [slice[6], slice[7], slice[8], slice[9]];
         let args_len = u32::from_be_bytes(args_len_bytes) as usize;
 
-        let data_len_bytes = [slice[10], slice[11], slice[12], slice[13]];
-        let data_len = u32::from_be_bytes(data_len_bytes) as usize;
-
         let code = &slice[14..(14 + code_len)];
         let args = &slice[(14 + code_len)..(14 + code_len + args_len)];
-        let data = &slice[(14 + code_len + args_len)..(14 + code_len + args_len + data_len)];
 
         Ok(Self {
             version,
             script_type,
             code,
             args,
-            data,
         })
     }
 
@@ -93,9 +87,5 @@ impl<'a> Script<'a> {
 
     pub fn args(&self) -> &'a [u8] {
         self.args
-    }
-
-    pub fn data(&self) -> &'a [u8] {
-        self.data
     }
 }
