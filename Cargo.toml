@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    # "core",
+    "core",
     "models/eth/contracts",
     "models/eth/rpc",
     "models/native/contracts",

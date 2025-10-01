@@ -18,7 +18,6 @@ impl Transaction {
 
         for unlocker in self.unlockers.iter().rev() {
             let unlocker_len = unlocker.0.len() as u32;
-            println!("unlocker_len: {}", unlocker_len);
             v.extend_from_slice(&unlocker_len.to_be_bytes());
         }
 
@@ -38,27 +37,24 @@ impl Transaction {
         let unlocker_count =
             u32::from_be_bytes(slice[slice.len() - 4..slice.len()].try_into().unwrap()) as usize;
 
-        let mut unlockers = vec![Bytes::default(); unlocker_count];
+        let mut unlockers = Vec::new();
 
         let mut unlockers_length_pos = slice.len() - 4;
         let mut unlockers_begin_pos = slice.len() - 4 - unlocker_count * 4;
 
-        for i in 0..unlocker_count {
+        for _ in 0..unlocker_count {
             let begin = unlockers_length_pos;
-            let end = begin + 4;
-            let unlocker_len = u32::from_be_bytes(slice[begin..end].try_into().unwrap()) as usize;
-            println!("unlocker_len: {}", unlocker_len);
-            unlockers_length_pos = begin - 4;
+            let end = begin - 4;
+            let unlocker_len = u32::from_be_bytes(slice[end..begin].try_into().unwrap()) as usize;
+            unlockers_length_pos = end;
 
             let begin = unlockers_begin_pos;
             let end = begin - unlocker_len;
 
-            println!("begin: {}, end: {}", begin, end);
-
             let data = &slice[end..begin];
             let unlocker = Bytes::from_slice(data);
 
-            println!("unlocker: {:?}", unlocker);
+            unlockers.push(unlocker);
 
             unlockers_begin_pos = end;
         }
