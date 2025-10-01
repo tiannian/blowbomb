@@ -55,7 +55,7 @@ impl<const N: usize> FixedBytes<N> {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bytes(pub Vec<u8>);
 
 impl Debug for Bytes {

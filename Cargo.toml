@@ -1,5 +1,13 @@
 [workspace]
-members = ["core", "models/eth/contracts", "models/eth/rpc", "models/native/contracts", "models/native/rpc", "primitives", "rpc"]
+members = [
+    # "core",
+    "models/eth/contracts",
+    "models/eth/rpc",
+    "models/native/contracts",
+    "models/native/rpc",
+    "primitives",
+    "rpc",
+]
 resolver = "2"
 
 [workspace.package]
