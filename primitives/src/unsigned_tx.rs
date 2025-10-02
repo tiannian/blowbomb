@@ -26,23 +26,11 @@ impl UnsignedTransaction {
         }
 
         for input in &self.inputs {
-            v.extend_from_slice(&input.txid.0);
-            v.extend_from_slice(&input.index.to_be_bytes());
+            v.extend_from_slice(&input.0);
         }
 
         for output in &self.outputs {
-            v.extend_from_slice(&output.version.to_be_bytes());
-            v.extend_from_slice(&output.owner.0);
-            v.extend_from_slice(&output.index_key.0);
-
-            if let Some(operator) = &output.operator {
-                v.extend_from_slice(&operator.txid.0);
-                v.extend_from_slice(&operator.index.to_be_bytes());
-            } else {
-                v.extend_from_slice(&[0u8; 32]);
-                v.extend_from_slice(&[0u8; 4]);
-            }
-            v.extend_from_slice(&output.data.0);
+            output.append_to_vec(v)?;
         }
 
         Ok(())
@@ -76,14 +64,9 @@ impl UnsignedTransaction {
             // Get txid for input
             let begin = inputs_begin_pos;
             let end = begin + 32;
-            let txid = Txid::from_slice(&slice[begin..end])?;
+            let txid = LeafId::from_slice(&slice[begin..end])?;
 
-            // Get index for input
-            let begin = end;
-            let end = begin + 4;
-            let index = u32::from_be_bytes(slice[begin..end].try_into().unwrap());
-
-            inputs.push(LeafId { txid, index });
+            inputs.push(txid);
 
             inputs_begin_pos = end;
         }
@@ -113,27 +96,17 @@ impl UnsignedTransaction {
             // Get output index key
             let begin = end;
             let end = begin + 32;
-            let index_key = IndexKey::from_slice(&slice[begin..end])?;
+            let index = IndexKey::from_slice(&slice[begin..end])?;
 
             // Get output operator txid
             let begin = end;
             let end = begin + 32;
-            let operator_txid = Txid::from_slice(&slice[begin..end])?;
+            let operator = LeafId::from_slice(&slice[begin..end])?;
 
-            // Get output operator index
-            let begin = end;
-            let end = begin + 4;
-            let operator_index = u32::from_be_bytes(slice[begin..end].try_into().unwrap());
-
-            let operator = LeafId {
-                txid: operator_txid,
-                index: operator_index,
-            };
-
-            let operator = if operator.is_some() {
-                Some(operator)
-            } else {
+            let operator = if operator.is_none() {
                 None
+            } else {
+                Some(operator)
             };
 
             // Get output data
@@ -144,7 +117,7 @@ impl UnsignedTransaction {
             outputs.push(Leaf {
                 version,
                 owner,
-                index_key,
+                index,
                 operator,
                 data,
             });

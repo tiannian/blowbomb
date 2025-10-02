@@ -1,13 +1,13 @@
-use sha3::Digest;
+use sha3::{Digest, Sha3_256};
 
 use crate::{Address, Error, Result};
 
-pub enum ScriptType {
+pub enum UnlockScriptType {
     Empty,
     Wasm,
 }
 
-impl ScriptType {
+impl UnlockScriptType {
     pub fn from_u8(value: u8) -> Option<Self> {
         match value {
             0 => Some(Self::Empty),
@@ -24,68 +24,58 @@ impl ScriptType {
     }
 }
 
-pub struct Script<'a> {
-    version: u8,
-    script_type: ScriptType,
-    code: &'a [u8],
-    args: &'a [u8],
+pub struct UnlockScript {
+    pub version: u8,
+    pub ty: UnlockScriptType,
+    pub code_leaf: [u8; 32],
+    pub args: Vec<u8>,
 }
 
-impl<'a> Script<'a> {
-    pub fn from_slice(slice: &'a [u8]) -> Result<Self> {
-        if slice.len() < 10 {
-            return Err(Error::WrongLengthForScript(slice.len(), 14));
+impl UnlockScript {
+    pub fn append_to_vec(&self, v: &mut Vec<u8>) -> Result<()> {
+        v.extend_from_slice(&self.version.to_be_bytes());
+        v.extend_from_slice(&(self.args.len() as u32).to_be_bytes());
+        v.extend_from_slice(&self.ty.to_u8().to_be_bytes());
+        v.extend_from_slice(&self.code_leaf);
+        v.extend_from_slice(&self.args);
+
+        Ok(())
+    }
+
+    pub fn from_slice(slice: &[u8]) -> Result<Self> {
+        if slice.len() < 38 {
+            return Err(Error::WrongLengthForUnlockScript(slice.len(), 38));
         }
 
-        let version = slice[0];
-        let script_type =
-            ScriptType::from_u8(slice[1]).ok_or(Error::WrongLengthForScript(slice.len(), 2))?;
+        let args_len = u32::from_be_bytes(slice[1..5].try_into().unwrap());
 
-        let code_len_bytes = [slice[2], slice[3], slice[4], slice[5]];
-        let code_len = u32::from_be_bytes(code_len_bytes) as usize;
+        if slice.len() < 38 + args_len as usize {
+            return Err(Error::WrongLengthForUnlockScript(
+                slice.len(),
+                38 + args_len as usize,
+            ));
+        }
 
-        let args_len_bytes = [slice[6], slice[7], slice[8], slice[9]];
-        let args_len = u32::from_be_bytes(args_len_bytes) as usize;
-
-        let code = &slice[14..(14 + code_len)];
-        let args = &slice[(14 + code_len)..(14 + code_len + args_len)];
+        let version = u8::from_be_bytes(slice[0..1].try_into().unwrap());
+        let ty = UnlockScriptType::from_u8(slice[5]).unwrap();
+        let code_leaf = slice[6..38].try_into().unwrap();
+        let args = slice[38..38 + args_len as usize].to_vec();
 
         Ok(Self {
             version,
-            script_type,
-            code,
+            ty,
+            code_leaf,
             args,
         })
     }
 
-    pub fn address(&self) -> Address {
-        let mut hasher = sha3::Sha3_256::new();
-
-        hasher.update(&[self.version, self.script_type.to_u8()]);
-        hasher.update(self.code);
-        hasher.update(self.args);
+    pub fn address(&self) -> Result<Address> {
+        let mut hasher = Sha3_256::new();
+        hasher.update(&[self.version, self.ty.to_u8()]);
+        hasher.update(&self.code_leaf);
+        hasher.update(&self.args);
 
         let hash = hasher.finalize();
-
-        let mut address = [0u8; 20];
-        address.copy_from_slice(&hash[..20]);
-
-        crate::FixedBytes(address)
-    }
-
-    pub fn version(&self) -> u8 {
-        self.version
-    }
-
-    pub fn script_type(&self) -> &ScriptType {
-        &self.script_type
-    }
-
-    pub fn code(&self) -> &'a [u8] {
-        self.code
-    }
-
-    pub fn args(&self) -> &'a [u8] {
-        self.args
+        Address::from_slice(&hash[..20])
     }
 }

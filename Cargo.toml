@@ -1,12 +1,12 @@
 [workspace]
 members = [
-    "core",
-    "models/eth/contracts",
-    "models/eth/rpc",
-    "models/native/contracts",
-    "models/native/rpc",
+    # "core",
+    # "models/eth/contracts",
+    # "models/eth/rpc",
+    # "models/native/contracts",
+    # "models/native/rpc",
     "primitives",
-    "rpc",
+    # "rpc",
 ]
 resolver = "2"
 
