@@ -96,6 +96,21 @@ impl<'a> LeafParser<&'a [u8]> {
         let data_len = self.data_len() as usize;
         &self.inner[97..97 + data_len]
     }
+
+    pub fn to_leaf(&self) -> Result<Leaf> {
+        Ok(Leaf {
+            version: self.version(),
+            nonce: self.nonce(),
+            owner: Address::from_slice(self.owner())?,
+            index: IndexKey::from_slice(self.index())?,
+            operator: if self.operator().is_none() {
+                None
+            } else {
+                Some(LeafId::from_slice(self.operator())?)
+            },
+            data: Bytes::from_slice(self.data()),
+        })
+    }
 }
 
 impl<'a> LeafParser<&'a mut [u8]> {
