@@ -34,6 +34,17 @@ pub struct LeafParser<T> {
     inner: T,
 }
 
+impl<T> LeafParser<T>
+where
+    T: AsRef<[u8]>,
+{
+    pub fn new(inner: T) -> Result<Self> {
+        check_leaf_length(inner.as_ref())?;
+
+        Ok(Self { inner })
+    }
+}
+
 const LEAF_HEADER_LENGTH: usize = 1 + 8 + 20 + 32 + 32 + 4;
 
 fn check_leaf_length(slice: &[u8]) -> Result<()> {
@@ -56,11 +67,6 @@ fn check_leaf_length(slice: &[u8]) -> Result<()> {
 }
 
 impl<'a> LeafParser<&'a [u8]> {
-    pub fn new(slice: &'a [u8]) -> Result<Self> {
-        check_leaf_length(slice)?;
-        Ok(Self { inner: slice })
-    }
-
     pub fn version(&self) -> u8 {
         self.inner[0]
     }
@@ -103,7 +109,7 @@ impl<'a> LeafParser<&'a [u8]> {
             nonce: self.nonce(),
             owner: Address::from_slice(self.owner())?,
             index: IndexKey::from_slice(self.index())?,
-            operator: if self.operator().is_none() {
+            operator: if self.operator() == &[0u8; 32] {
                 None
             } else {
                 Some(LeafId::from_slice(self.operator())?)
@@ -114,11 +120,6 @@ impl<'a> LeafParser<&'a [u8]> {
 }
 
 impl<'a> LeafParser<&'a mut [u8]> {
-    pub fn new(slice: &'a mut [u8]) -> Result<Self> {
-        check_leaf_length(slice)?;
-        Ok(Self { inner: slice })
-    }
-
     pub fn version(&self) -> u8 {
         self.inner[0]
     }
@@ -182,5 +183,28 @@ impl<'a> LeafParser<&'a mut [u8]> {
     pub fn data_mut(&mut self) -> &mut [u8] {
         let data_len = self.data_len() as usize;
         &mut self.inner[97..97 + data_len]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_leaf_parser() {
+        let leaf = Leaf {
+            version: 1,
+            nonce: 12345,
+            owner: Address::from_slice(&[1u8; 20]).unwrap(),
+            index: IndexKey::from_slice(&[2u8; 32]).unwrap(),
+            operator: None,
+            data: Bytes::from_slice(&[3u8; 32]),
+        };
+
+        let mut bytes = Vec::new();
+        leaf.append_to_vec(&mut bytes).unwrap();
+        let bytes_ref = bytes.as_slice();
+        let parsed = LeafParser::new(bytes_ref).unwrap();
+        assert_eq!(leaf, parsed.to_leaf().unwrap());
     }
 }
